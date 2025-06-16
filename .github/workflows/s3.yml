@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       s3_bucket:
-        description: 'Enter the S3 bucket name'
+        description: 'Enter the S3 bucket name (optional)'
         required: false
         type: string
 
@@ -14,13 +14,13 @@ jobs:
 
     env:
       AWS_REGION: us-east-1
-      DEFAULT_BUCKET: ${{ vars.DEFAULT_BUCKET }}  # Or use secrets.DEFAULT_BUCKET if private
+      DEFAULT_BUCKET: ${{ vars.DEFAULT_BUCKET }}  # Set this in repository variables
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Important: Fetch full history for git diff
+          fetch-depth: 0  # Important: fetch full history
 
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,19 +44,20 @@ jobs:
       - name: Detect newly added files in sql/ folder
         id: detect
         run: |
-          echo "Current SHA: ${{ github.sha }}"
-          git log -1
+          echo "Detecting new files in sql/..."
 
-          git fetch origin main  # Change to your actual default branch if needed
+          # Get last 2 commits on the current branch
+          COMMIT_RANGE=$(git log --format="%H" -2 | tac | paste -sd " " -)
+          read PREV_COMMIT CURR_COMMIT <<< "$COMMIT_RANGE"
 
-          # Try to get previous commit from current branch
-          PREV_COMMIT=$(git rev-parse HEAD^)
           echo "Previous commit: $PREV_COMMIT"
+          echo "Current commit : $CURR_COMMIT"
 
-          git diff --diff-filter=A --name-only "$PREV_COMMIT" ${{ github.sha }} | grep '^sql/' > added_files.txt || true
+          git diff --diff-filter=A --name-only "$PREV_COMMIT" "$CURR_COMMIT" \
+            | grep '^sql/' > added_files.txt || true
 
-          echo "Newly added files in sql/:"
-          cat added_files.txt || echo "None"
+          echo "Detected files:"
+          cat added_files.txt || echo "No files detected"
 
           if [[ -s added_files.txt ]]; then
             echo "files_changed=true" >> "$GITHUB_OUTPUT"
@@ -68,7 +69,7 @@ jobs:
         if: steps.detect.outputs.files_changed == 'true'
         run: |
           BUCKET_NAME=${{ steps.bucket.outputs.bucket_name }}
-          echo "Uploading to bucket: $BUCKET_NAME"
+          echo "Uploading to S3 bucket: $BUCKET_NAME"
 
           while IFS= read -r file; do
             echo "Uploading $file to s3://$BUCKET_NAME/$file"
