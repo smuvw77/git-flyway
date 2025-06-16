@@ -1,19 +1,26 @@
-name: Upload new SQL files to S3-AWS-2
+name: Upload new SQL files to S3
 
 on:
   push:
     paths:
       - 'sql/**'
+  workflow_dispatch:
+    inputs:
+      s3_bucket:
+        description: 'Enter the S3 bucket name'
+        required: false
+        type: string
 
 jobs:
   upload-new-sql-files:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: us-east-1  # change to your region
+      AWS_REGION: us-east-1
+      DEFAULT_BUCKET: your-default-bucket-name  # <-- fallback bucket if not passed
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up AWS credentials
@@ -23,23 +30,35 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get added SQL files only
+      - name: Determine bucket name
+        id: bucket
+        run: |
+          if [[ -z "${{ github.event.inputs.s3_bucket }}" ]]; then
+            echo "Using default bucket: $DEFAULT_BUCKET"
+            echo "bucket_name=$DEFAULT_BUCKET" >> "$GITHUB_OUTPUT"
+          else
+            echo "Using input bucket: ${{ github.event.inputs.s3_bucket }}"
+            echo "bucket_name=${{ github.event.inputs.s3_bucket }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Detect newly added files in sql/ folder
         id: detect
         run: |
           git fetch origin ${{ github.event.before }}
           git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | grep '^sql/.*\.sql$' > added_files.txt || true
-          
+            | grep '^sql/' > added_files.txt || true
+
           if [[ -s added_files.txt ]]; then
             echo "files_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "files_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Upload added SQL files to S3
+      - name: Upload new SQL files to S3
         if: steps.detect.outputs.files_changed == 'true'
         run: |
+          BUCKET_NAME=${{ steps.bucket.outputs.bucket_name }}
           while IFS= read -r file; do
-            echo "Uploading $file to S3..."
-            aws s3 cp "$file" "s3://sri-02242025/$file"
+            echo "Uploading $file to s3://$BUCKET_NAME/$file"
+            aws s3 cp "$file" "s3://$BUCKET_NAME/$file"
           done < added_files.txt
