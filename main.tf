@@ -1,15 +1,9 @@
-name: Upload new SQL files to S3-AWS
+/* name: Upload new SQL files to S3-AWS
 
 on:
   push:
     paths:
       - 'sql/**'
-    workflow_dispatch:
-    inputs:
-      s3_bucket:
-        description: 'Enter the S3 bucket name'
-        required: true
-        type: string
 
 jobs:
   upload-new-sql-files:
@@ -47,5 +41,5 @@ jobs:
         run: |
           while IFS= read -r file; do
             echo "Uploading $file to S3..."
-            aws s3 cp "$file" "s3://$BUCKET_NAME/$file"
-          done < added_files.txt
+            aws s3 cp "$file" "s3://sri-02242025/$file"
+          done < added_files.txt */
