@@ -2,34 +2,41 @@ name: Detect Changed Files in Folder
 
 on:
   push:
-    paths:
-      - 'sql/**'  # Optional: only run if something changed in this folder
+    branches:
+      - main  # or your default branch
 
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout full history (required for git diff)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important! So git has the full history
 
-      - name: Get changed files in folder
+      - name: Get changed files in flyway/ folder
         id: detect
         run: |
           echo "Previous commit: ${{ github.event.before }}"
-          echo "New commit: ${{ github.sha }}"
-          git fetch origin
-          
-          # Get list of changed or added files in sal/ directory
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^sql/' > changed_files.txt || true
+          echo "Current commit: ${{ github.sha }}"
+
+          # Default to HEAD~1 if github.event.before is empty (e.g., first push)
+          BEFORE_COMMIT=${{ github.event.before }}
+          if [ -z "$BEFORE_COMMIT" ]; then
+            BEFORE_COMMIT=$(git rev-parse HEAD~1)
+          fi
+
+          # Get changed files in flyway/ folder
+          git diff --name-only "$BEFORE_COMMIT" ${{ github.sha }} | grep '^sql/' > changed_files.txt || true
 
           echo "Changed files:"
-          cat changed_files.txt
+          cat changed_files.txt || echo "No files found"
 
-          # Export list as output (comma-separated)
-          files=$(paste -sd "," changed_files.txt)
-          echo "files_changed=$files" >> "$GITHUB_OUTPUT"
+          # Export comma-separated list
+          FILES=$(paste -sd "," changed_files.txt || echo "")
+          echo "files_changed=$FILES" >> $GITHUB_OUTPUT
 
-      - name: Use the changed files
+      - name: Print changed files
         run: |
-          echo "Files changed in sql/: ${{ steps.detect.outputs.files_changed }}"
+          echo "Changed files: ${{ steps.detect.outputs.files_changed }}"
