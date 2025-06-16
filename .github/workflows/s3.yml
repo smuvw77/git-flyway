@@ -1,7 +1,7 @@
 name: Upload new SQL files to S3-AWS
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
     inputs:
       s3_bucket:
         description: 'Enter the S3 bucket name'
