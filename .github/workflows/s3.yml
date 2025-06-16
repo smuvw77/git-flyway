@@ -1,0 +1,35 @@
+name: Detect Changed Files in Folder
+
+on:
+  push:
+    paths:
+      - 'sql/**'  # Optional: only run if something changed in this folder
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get changed files in folder
+        id: detect
+        run: |
+          echo "Previous commit: ${{ github.event.before }}"
+          echo "New commit: ${{ github.sha }}"
+          git fetch origin
+          
+          # Get list of changed or added files in flyway/ directory
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^flyway/' > changed_files.txt || true
+
+          echo "Changed files:"
+          cat changed_files.txt
+
+          # Export list as output (comma-separated)
+          files=$(paste -sd "," changed_files.txt)
+          echo "files_changed=$files" >> "$GITHUB_OUTPUT"
+
+      - name: Use the changed files
+        run: |
+          echo "Files changed in sql/: ${{ steps.detect.outputs.files_changed }}"
