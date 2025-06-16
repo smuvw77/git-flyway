@@ -44,5 +44,5 @@ jobs:
         run: |
           while IFS= read -r file; do
             echo "Uploading $file to S3..."
-            aws s3 cp "$file" "s3://$BUCKET_NAME/$file"
+            aws s3 cp "$file" "s3://sri-02242025/$file"
           done < added_files.txt
