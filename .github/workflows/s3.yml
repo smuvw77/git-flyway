@@ -20,8 +20,8 @@ jobs:
           echo "New commit: ${{ github.sha }}"
           git fetch origin
           
-          # Get list of changed or added files in flyway/ directory
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^flyway/' > changed_files.txt || true
+          # Get list of changed or added files in sal/ directory
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^sql/' > changed_files.txt || true
 
           echo "Changed files:"
           cat changed_files.txt
