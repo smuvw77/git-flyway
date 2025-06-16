@@ -1,4 +1,4 @@
-name: Upload new SQL files to S3-AWS-1
+name: Upload new SQL files to S3-AWS-2
 
 on:
   push:
