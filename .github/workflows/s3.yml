@@ -53,7 +53,7 @@ jobs:
           echo "Previous commit: $PREV_COMMIT"
           echo "Current commit : $CURR_COMMIT"
 
-          git diff --diff-filter=A --name-only "$PREV_COMMIT" "$CURR_COMMIT" \
+          git diff --diff-filter=A --name-only  origin/dev...HEAD "$PREV_COMMIT" "$CURR_COMMIT" \
             | grep '^sql/' > added_files.txt || true
 
           echo "Detected files:"
