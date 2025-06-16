@@ -1,42 +1,45 @@
-name: Detect Changed Files in Folder
+name: Upload new SQL files to S3
 
 on:
   push:
-    branches:
-      - main  # or your default branch
+    paths:
+      - 'sql/**'
 
 jobs:
-  detect-changes:
+  upload-new-sql-files:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout full history (required for git diff)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Important! So git has the full history
+    env:
+      AWS_REGION: us-east-1  # change to your region
 
-      - name: Get changed files in flyway/ folder
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get added SQL files only
         id: detect
         run: |
-          echo "Previous commit: ${{ github.event.before }}"
-          echo "Current commit: ${{ github.sha }}"
-
-          # Default to HEAD~1 if github.event.before is empty (e.g., first push)
-          BEFORE_COMMIT=${{ github.event.before }}
-          if [ -z "$BEFORE_COMMIT" ]; then
-            BEFORE_COMMIT=$(git rev-parse HEAD~1)
+          git fetch origin ${{ github.event.before }}
+          git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | grep '^sql/.*\.sql$' > added_files.txt || true
+          
+          if [[ -s added_files.txt ]]; then
+            echo "files_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "files_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # Get changed files in flyway/ folder
-          git diff --name-only "$BEFORE_COMMIT" ${{ github.sha }} | grep '^sql/' > changed_files.txt || true
-
-          echo "Changed files:"
-          cat changed_files.txt || echo "No files found"
-
-          # Export comma-separated list
-          FILES=$(paste -sd "," changed_files.txt || echo "")
-          echo "files_changed=$FILES" >> $GITHUB_OUTPUT
-
-      - name: Print changed files
+      - name: Upload added SQL files to S3
+        if: steps.detect.outputs.files_changed == 'true'
         run: |
-          echo "Changed files: ${{ steps.detect.outputs.files_changed }}"
+          while IFS= read -r file; do
+            echo "Uploading $file to S3..."
+            aws s3 cp "$file" "s3://sri-02242025/$file"
+          done < added_files.txt
