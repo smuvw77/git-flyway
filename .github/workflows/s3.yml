@@ -1,9 +1,6 @@
 name: Upload new SQL files to S3-AWS
 
 on:
-  push:
-    paths:
-      - 'sql/**'
     workflow_dispatch:
     inputs:
       s3_bucket:
