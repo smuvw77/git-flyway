@@ -1,12 +1,12 @@
 name: Upload new SQL files to S3-AWS
 
 on:
-  workflow_dispatch:
-    inputs:
-      s3_bucket:
-        description: 'Enter the S3 bucket name'
-        required: true
-        type: string
+   workflow_dispatch:
+     inputs:
+       s3_bucket:
+         description: 'Enter the S3 bucket name'
+         required: true
+         type: string
 
 jobs:
   upload-new-sql-files:
