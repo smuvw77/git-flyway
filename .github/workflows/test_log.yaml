@@ -19,7 +19,8 @@ jobs:
           target="1.1.29"
 
           {
-            echo "Files between $current and $target:"
+            echo "Files between $current and $target: "
+            echo "Currect version of flyway : 1.129"
 
             selected_files=$(find sql -type f -name "V*.sql" | while read file; do
               version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
