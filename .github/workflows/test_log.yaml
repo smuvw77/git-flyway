@@ -58,6 +58,8 @@ jobs:
         run: |
           echo "===== JOB 1 LOG START ====="
           cat log.txt
+          version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
+          echo "Extracted version: $version"
           echo "===== JOB 1 LOG END ====="
 
       # - name: Upload filtered SQL files to S3
