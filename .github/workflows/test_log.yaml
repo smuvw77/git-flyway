@@ -31,7 +31,8 @@ jobs:
             done)
 
             echo "$selected_files" > filtered_files.txt
-            echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+            # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+            echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
           } &> log.txt
 
       - name: Upload job log
