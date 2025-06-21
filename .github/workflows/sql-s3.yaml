@@ -1,4 +1,4 @@
-name: Upload new SQL files to S3
+name: job log
 
 on:
   workflow_dispatch:
