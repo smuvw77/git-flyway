@@ -1,0 +1,66 @@
+name: Store Job1 Log and Use in Job2
+
+on:
+  push:
+    paths:
+      - 'sql/**'
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run script and capture log
+        id: run_sql_filter
+        run: |
+          current="1.1.22"
+          target="1.1.29"
+
+          {
+            echo "Files between $current and $target:"
+
+            selected_files=$(find sql -type f -name "V*.sql" | while read file; do
+              version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
+              if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
+                 [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
+                 [[ "$version" != "$current" ]]; then
+                echo "$file"
+              fi
+            done)
+
+            echo "$selected_files" > filtered_files.txt
+            echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+          } &> log.txt
+
+      - name: Upload job log
+        uses: actions/upload-artifact@v3
+        with:
+          name: job1-log
+          path: log.txt
+
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download job1 log
+        uses: actions/download-artifact@v3
+        with:
+          name: job1-log
+
+      - name: Show job1 log
+        run: |
+          echo "===== JOB 1 LOG START ====="
+          cat log.txt
+          echo "===== JOB 1 LOG END ====="
+
+      # - name: Upload filtered SQL files to S3
+      #   run: |
+      #     while IFS= read -r file; do
+      #       echo "Uploading $file..."
+      #       aws s3 cp "$file" "s3://your-bucket/sql/"
+      #     done < filtered_files.txt
