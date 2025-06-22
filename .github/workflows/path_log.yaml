@@ -102,15 +102,29 @@ jobs:
           #   aws s3 cp "$file" "s3://sri031901/$file"
           # done < filtered_files.txt
 
-          if [[ -s filtered_files.txt ]]; then
-            echo "Filtered files found. Uploading to S3..."
-            while IFS= read -r file; do
-              echo "Uploading $file to S3..."
-              aws s3 cp "$file" "s3://sri031901/$file"
-            done < filtered_files.txt
-          else
-            echo "No files to upload."
-          fi
+          # if [[ -s filtered_files.txt ]]; then
+          #   echo "Filtered files found. Uploading to S3..."
+          #   while IFS= read -r file; do
+          #     echo "Uploading $file to S3..."
+          #     aws s3 cp "$file" "s3://sri031901/$file"
+          #   done < filtered_files.txt
+          # else
+          #   echo "No files to upload."
+          # fi
+
+        if [[ -s filtered_files.txt ]]; then
+           echo "Filtered files found. Uploading to S3..."
+          while IFS= read -r file; do
+            if [[ -n "$file" && -f "$file" ]]; then
+                echo "Uploading $file to S3..."
+                aws s3 cp "$file" "s3://${{ secrets.S3_BUCKET_NAME }}/$file"
+            else
+              echo "Skipping empty or non-existent file"
+            fi
+          done < filtered_files.txt
+        else
+          echo "No files to upload."
+        fi
 
       # - name: Upload added SQL files to S3
       #   run: |
