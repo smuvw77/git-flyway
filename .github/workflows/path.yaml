@@ -54,7 +54,7 @@ jobs:
           done)
 
       - name: Upload added SQL files to S3
-        if: steps.detect.outputs.files_changed == 'true'
+        # if: steps.detect.outputs.files_changed == 'true'
         run: |
           while IFS= read -r file; do
             echo "Uploading $file to S3..."
