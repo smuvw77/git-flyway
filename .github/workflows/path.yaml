@@ -2,8 +2,8 @@ name: Upload new SQL files_to_S3
 
 on:
   push:
-    # paths:
-    #   - 'sql/**'
+    paths:
+      - 'sql/**'
 jobs:
   upload-new-sql-files:
     runs-on: ubuntu-latest
