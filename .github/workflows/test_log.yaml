@@ -66,7 +66,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: filtered-sql-files
-          path: .
+          path:  filtered_files.txt
 
       - name: Upload filtered SQL files to S3
         run: |
