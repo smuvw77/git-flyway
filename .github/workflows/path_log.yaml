@@ -119,7 +119,7 @@ jobs:
                 echo "Uploading $file to S3..."
                 aws s3 cp "$file" "s3://${{ secrets.S3_BUCKET_NAME }}/$file"
             else
-              echo "Skipping empty or non-existent file"
+              echo "Skipping empty or non-existent file1"
             fi
           done < filtered_files.txt
         else
