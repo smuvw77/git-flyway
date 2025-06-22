@@ -117,7 +117,7 @@ jobs:
             while IFS= read -r file; do
               if [[ -n "$file" && -f "$file" ]]; then
                  echo "Uploading $file to S3..."
-                 aws s3 cp "$file" "s3://${{ secrets.S3_BUCKET_NAME }}/$file"
+                 aws s3 cp "$file" "s3://$BUCKET_NAME/$file"
               else
                 echo "Skipping empty or non-existent file1"
               fi
