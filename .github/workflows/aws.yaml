@@ -1,42 +1,42 @@
-name: Upload SQL Files to S3
+# name: Upload SQL Files to S3
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'sql/**'  # Only trigger when files inside sql/ change
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'sql/**'  # Only trigger when files inside sql/ change
 
-jobs:
-  upload-to-s3:
-    runs-on: ubuntu-latest
+# jobs:
+#   upload-to-s3:
+#     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      S3_BUCKET: ${{ secrets.S3_BUCKET_NAME }}
+#     env:
+#       AWS_REGION: ${{ secrets.AWS_REGION }}
+#       S3_BUCKET: ${{ secrets.S3_BUCKET_NAME }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Set up AWS CLI
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#       - name: Set up AWS CLI
+#         uses: aws-actions/configure-aws-credentials@v3
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: List changed files
-        id: changes
-        run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^sql/.*' > changed_files.txt || true
-          echo "Changed files:"
-          cat changed_files.txt
+#       - name: List changed files
+#         id: changes
+#         run: |
+#           git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^sql/.*' > changed_files.txt || true
+#           echo "Changed files:"
+#           cat changed_files.txt
 
-      - name: Upload changed files to S3
-        if: success()
-        run: |
-          while IFS= read -r file; do
-            echo "Uploading $file to s3://${S3_BUCKET}/$file"
-            aws s3 cp "$file" "s3://${S3_BUCKET}/$file"
-          done < changed_files.txt
+#       - name: Upload changed files to S3
+#         if: success()
+#         run: |
+#           while IFS= read -r file; do
+#             echo "Uploading $file to s3://${S3_BUCKET}/$file"
+#             aws s3 cp "$file" "s3://${S3_BUCKET}/$file"
+#           done < changed_files.txt

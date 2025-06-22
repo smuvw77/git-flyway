@@ -81,7 +81,9 @@ jobs:
           # else
           #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
           # fi
-          current=$current_version
+          current_version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
+          echo "Extracted version1: $current_version1"
+          current=$current_version1
           target="1.1.29"
 
           echo "Files between $current and $target:"
