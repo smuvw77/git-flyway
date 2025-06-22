@@ -15,7 +15,7 @@ jobs:
       - name: Run script and capture log
         id: run_sql_filter
         run: |
-          current="1.1.23"
+          current="1.1.24"
           target="1.1.29"
 
           {
@@ -53,8 +53,8 @@ jobs:
         run: |
           echo "===== JOB 1 LOG START ====="
           cat log.txt
-          version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
-          echo "Extracted version: $version"
+          current_version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
+          echo "Extracted version: $current_version"
           echo "===== JOB 1 LOG END ====="
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
           # else
           #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
           # fi
-          current="1.1.22"
+          current=$current_version
           target="1.1.29"
 
           echo "Files between $current and $target:"
