@@ -52,11 +52,11 @@ jobs:
               echo "$file"
             fi
           done)
-           echo "$selected_files"
+          echo "$selected_files"
     
-           # Save to file or GitHub output
-           echo "$selected_files" > filtered_files.txt
-           echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+          # Save to file or GitHub output
+          echo "$selected_files" > filtered_files.txt
+          echo "files=$selected_files" >> "$GITHUB_OUTPUT"
 
       - name: Upload added SQL files to S3
         # if: steps.detect.outputs.files_changed == 'true'
