@@ -1,89 +1,89 @@
-# name: Store Job1 Log and Use in Job2
+name: Store Job1 Log and Use in Job2
 
-# on:
-#   push:
-#     # paths:
-#     #   - 'sql/**'
+on:
+  push:
+    # paths:
+    #   - 'sql/**'
 
-# jobs:
-#   job1:
-#     runs-on: ubuntu-latest
+jobs:
+  job1:
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-#       - name: Run script and capture log
-#         id: run_sql_filter
-#         run: |
-#           current="1.1.23"
-#           target="1.1.29"
+      - name: Run script and capture log
+        id: run_sql_filter
+        run: |
+          current="1.1.23"
+          target="1.1.29"
 
-#           {
-#             echo "Files between $current and $target: "
-#             echo "Currect version of flyway : $current"
+          {
+            echo "Files between $current and $target: "
+            echo "Currect version of flyway : $current"
 
-#             selected_files=$(find sql -type f -name "V*.sql" | while read file; do
-#               version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
-#               if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
-#                  [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
-#                  [[ "$version" != "$current" ]]; then
-#                 echo "$file"
-#               fi
-#             done)
+            selected_files=$(find sql -type f -name "V*.sql" | while read file; do
+              version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
+              if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
+                 [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
+                 [[ "$version" != "$current" ]]; then
+                echo "$file"
+              fi
+            done)
 
-#             echo "$selected_files" > filtered_files.txt
-#             # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
-#             echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
-#           } &> log.txt
+            echo "$selected_files" > filtered_files.txt
+            # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+            echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
+          } &> log.txt
 
-#       - name: Upload filtered file list
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: filtered-sql-files
-#           path: filtered_files.txt
+      - name: Upload filtered file list
+        uses: actions/upload-artifact@v4
+        with:
+          name: filtered-sql-files
+          path: filtered_files.txt
 
-#       - name: Upload job log
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: job1-log
-#           path: log.txt
+      - name: Upload job log
+        uses: actions/upload-artifact@v4
+        with:
+          name: job1-log
+          path: log.txt
 
-#   job2:
-#     needs: job1
-#     runs-on: ubuntu-latest
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
 
-#     steps:
-#       # - uses: actions/checkout@v3
+    steps:
+      # - uses: actions/checkout@v3
 
-#       - name: Download job1 log
-#         uses: actions/download-artifact@v4
-#         with:
-#           name: job1-log
+      - name: Download job1 log
+        uses: actions/download-artifact@v4
+        with:
+          name: job1-log
 
-#       - name: Show job1 log
-#         run: |
-#           echo "===== JOB 1 LOG START ====="
-#           cat log.txt
-#           version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
-#           echo "Extracted version: $version"
-#           echo "===== JOB 1 LOG END ====="
+      - name: Show job1 log
+        run: |
+          echo "===== JOB 1 LOG START ====="
+          cat log.txt
+          version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
+          echo "Extracted version: $version"
+          echo "===== JOB 1 LOG END ====="
 
-#       - name: Download filtered file list
-#         uses: actions/download-artifact@v4
-#         with:
-#           name: filtered-sql-files
-#           path:  filtered_files.txt
+      - name: Download filtered file list
+        uses: actions/download-artifact@v4
+        with:
+          name: filtered-sql-files
+          path:  filtered_files.txt
 
-#       - name: Debug file
-#         run: |
-#           echo "Checking filtered_files.txt..."
-#           ls -l filtered_files.txt
-#           file filtered_files.txt
-#           cat filtered_files.txt || echo "File not found or unreadable"
+      - name: Debug file
+        run: |
+          echo "Checking filtered_files.txt..."
+          ls -l filtered_files.txt
+          file filtered_files.txt
+          cat filtered_files.txt || echo "File not found or unreadable"
 
-#       - name: Upload filtered SQL files to S3
-#         run: |
-#           while IFS= read -r file; do
-#             echo "Uploading $file..."
-#             aws s3 cp "$file" "s3:sri-02242025/sql/"
-#           done < filtered_files.txt
+      - name: Upload filtered SQL files to S3
+        run: |
+          while IFS= read -r file; do
+            echo "Uploading $file..."
+            aws s3 cp "$file" "s3:sri-02242025/sql/"
+          done < filtered_files.txt

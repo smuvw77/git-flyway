@@ -1,73 +1,68 @@
-name: Upload123
+# name: Upload123
 
-on:
-  push:
-    # paths:
-    #   - 'sql/**'
-jobs:
-  upload-new-sql-files:
-    runs-on: ubuntu-latest
+# on:
+#   push:
+#     # paths:
+#     #   - 'sql/**'
+# jobs:
+#   upload-new-sql-files:
+#     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: us-east-1  # change to your region
-      BUCKET_NAME: sri031901
+#     env:
+#       AWS_REGION: us-east-1  # change to your region
+#       BUCKET_NAME: sri031901
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
 
-      - name: Set up AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Use environment secret
-        env:
-          BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-        run: echo "$BUCKET_NAME"
-      - name: Get added SQL files only
-        id: detect
-        run: |
-          # git fetch origin ${{ github.event.before }}
-          # git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
-          #   | grep '^sql/.*\.sql$' > added_files.txt || true
+#       - name: Set up AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
+#       - name: Use environment secret
+#         env:
+#           BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+#         run: echo "$BUCKET_NAME"
+#       - name: Get added SQL files only
+#         id: detect
+#         run: |
+#           # git fetch origin ${{ github.event.before }}
+#           # git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
+#           #   | grep '^sql/.*\.sql$' > added_files.txt || true
           
-          # if [[ -s added_files.txt ]]; then
-          #   echo "files_changed=true" >> "$GITHUB_OUTPUT"
-          # else
-          #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
-          # fi
-          current="1.1.22"
-          target="1.1.29"
+#           # if [[ -s added_files.txt ]]; then
+#           #   echo "files_changed=true" >> "$GITHUB_OUTPUT"
+#           # else
+#           #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
+#           # fi
+#           current="1.1.22"
+#           target="1.1.29"
 
-          echo "Files between $current and $target:"
+#           echo "Files between $current and $target:"
     
-          selected_files=$(find sql -type f -name "V*.sql" | while read file; do
-            version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
-            # Compare versions using sort -V
-            if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
-               [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
-               [[ "$version" != "$current" ]]; then
-              echo "$file"
-            fi
-          done)
-          echo "$selected_files"
+#           selected_files=$(find sql -type f -name "V*.sql" | while read file; do
+#             version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
+#             # Compare versions using sort -V
+#             if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
+#                [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
+#                [[ "$version" != "$current" ]]; then
+#               echo "$file"
+#             fi
+#           done)
+#           echo "$selected_files"
     
-          # Save to file or GitHub output
-          echo "$selected_files" > filtered_files.txt
-          # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
-           echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
+#           # Save to file or GitHub output
+#           echo "$selected_files" > filtered_files.txt
+#           # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+#            echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload added SQL files to S3
-        # if: steps.detect.outputs.files_changed == 'true'
-        run: |
-          while IFS= read -r file; do
-            echo "Uploading $file to S3..."
-            aws s3 cp "$file" "s3://sri031901/$file"
-          done < filtered_files.txt
-
-      # - name: Upload added SQL files to S3
-      #   run: |
-      #     echo "Uploading file to S3..."
-      #     aws s3 sync sql/ "s3://$BUCKET_NAME/sql"
+#       - name: Upload added SQL files to S3
+#         # if: steps.detect.outputs.files_changed == 'true'
+#         run: |
+#           while IFS= read -r file; do
+#             echo "Uploading $file to S3..."
+#             aws s3 cp "$file" "s3://sri031901/$file"
+#           done < filtered_files.txt
