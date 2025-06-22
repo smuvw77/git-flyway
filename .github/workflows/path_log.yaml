@@ -113,7 +113,7 @@ jobs:
           # fi
 
           if [[ -s filtered_files.txt ]]; then
-            echo "Filtered files found. Uploading to S3..."
+            # echo "Filtered files found. Uploading to S3..."
             while IFS= read -r file; do
               if [[ -n "$file" && -f "$file" ]]; then
                  echo "Uploading $file to S3..."
