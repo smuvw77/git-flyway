@@ -15,7 +15,7 @@ jobs:
       - name: Run script and capture log
         id: run_sql_filter
         run: |
-          current="1.1.29"
+          current="1.1.22"
           target="1.1.29"
 
           {
