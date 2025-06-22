@@ -44,18 +44,19 @@ jobs:
       BUCKET_NAME: sri031901
 
     steps:
-      # - name: Download job1 log
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: job1-log
+      - name: Download job1 log
+        uses: actions/download-artifact@v4
+        with:
+          name: job1-log
 
-      # - name: Show job1 log
-      #   run: |
-      #     echo "===== JOB 1 LOG START ====="
-      #     cat log.txt
-      #     current_version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
-      #     echo "Extracted version: $current_version"
-      #     echo "===== JOB 1 LOG END ====="
+      - name: Show job1 log
+        run: |
+          echo "===== JOB 1 LOG START ====="
+          cat log.txt
+          current_version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
+          echo "Extracted version: $current_version"
+          echo "CURRENT_VERSION=$current_version" >> "$GITHUB_ENV"
+          echo "===== JOB 1 LOG END ====="
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -69,25 +70,9 @@ jobs:
         env:
           BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         run: echo "$BUCKET_NAME"
-      - name: Download job1 log
-        uses: actions/download-artifact@v4
-        with:
-          name: job1-log
       - name: Get added SQL files only
         id: detect
         run: |
-          # git fetch origin ${{ github.event.before }}
-          # git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
-          #   | grep '^sql/.*\.sql$' > added_files.txt || true
-          
-          # if [[ -s added_files.txt ]]; then
-          #   echo "files_changed=true" >> "$GITHUB_OUTPUT"
-          # else
-          #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
-          # fi
-          cat log.txt
-          current_version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
-          echo "Extracted version1: $current_version1"
           current=$current_version1
           target="1.1.29"
 
