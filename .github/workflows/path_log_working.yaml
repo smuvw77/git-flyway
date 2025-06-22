@@ -1,108 +1,108 @@
-name: Upload123
+# name: Upload123
 
-on:
-  push:
-    # paths:
-    #   - 'sql/**'
-jobs:
+# on:
+#   push:
+#     # paths:
+#     #   - 'sql/**'
+# jobs:
   
-  job1:
-    runs-on: ubuntu-latest
+#   job1:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
+#     steps:
+#       - uses: actions/checkout@v3
 
-      - name: Run script and capture log
-        id: run_sql_filter
-        run: |
-          current="1.1.24"
-          target="1.1.29"
+#       - name: Run script and capture log
+#         id: run_sql_filter
+#         run: |
+#           current="1.1.24"
+#           target="1.1.29"
 
-          {
-            echo "Files between $current and $target: "
-            echo "Currect version of flyway : $current"
-          } &> log.txt
+#           {
+#             echo "Files between $current and $target: "
+#             echo "Currect version of flyway : $current"
+#           } &> log.txt
 
-      - name: Upload filtered file list
-        uses: actions/upload-artifact@v4
-        with:
-          name: filtered-sql-files
-          path: filtered_files.txt
+#       - name: Upload filtered file list
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: filtered-sql-files
+#           path: filtered_files.txt
 
-      - name: Upload job log
-        uses: actions/upload-artifact@v4
-        with:
-          name: job1-log
-          path: log.txt
+#       - name: Upload job log
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: job1-log
+#           path: log.txt
   
-  upload-new-sql-files:
-    needs: job1
-    runs-on: ubuntu-latest
+#   upload-new-sql-files:
+#     needs: job1
+#     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: us-east-1  # change to your region
-      BUCKET_NAME: sri031901
+#     env:
+#       AWS_REGION: us-east-1  # change to your region
+#       BUCKET_NAME: sri031901
 
-    steps:
-      - name: Download job1 log
-        uses: actions/download-artifact@v4
-        with:
-          name: job1-log
+#     steps:
+#       - name: Download job1 log
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: job1-log
 
-      - name: Show job1 log
-        run: |
-          echo "===== JOB 1 LOG START ====="
-          cat log.txt
-          current_version1=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
-          echo "Extracted version: $current_version1"
-          echo "CURRENT_VERSION=$current_version1" >> "$GITHUB_ENV"
-          echo "===== JOB 1 LOG END ====="
-      - name: Checkout repository
-        uses: actions/checkout@v4
+#       - name: Show job1 log
+#         run: |
+#           echo "===== JOB 1 LOG START ====="
+#           cat log.txt
+#           current_version1=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
+#           echo "Extracted version: $current_version1"
+#           echo "CURRENT_VERSION=$current_version1" >> "$GITHUB_ENV"
+#           echo "===== JOB 1 LOG END ====="
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
 
-      - name: Set up AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Use environment secret
-        env:
-          BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-        run: echo "$BUCKET_NAME"
-      - name: Get added SQL files only
-        id: detect
-        run: |
-          current=$CURRENT_VERSION
-          target="1.1.29"
+#       - name: Set up AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
+#       - name: Use environment secret
+#         env:
+#           BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+#         run: echo "$BUCKET_NAME"
+#       - name: Get added SQL files only
+#         id: detect
+#         run: |
+#           current=$CURRENT_VERSION
+#           target="1.1.29"
 
-          echo "Files between $current and $target:"
+#           echo "Files between $current and $target:"
     
-          selected_files=$(find sql -type f -name "V*.sql" | while read file; do
-            version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
-            # Compare versions using sort -V
-            if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
-               [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
-               [[ "$version" != "$current" ]]; then
-              echo "$file"
-            fi
-          done)
-          echo "$selected_files"
+#           selected_files=$(find sql -type f -name "V*.sql" | while read file; do
+#             version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
+#             # Compare versions using sort -V
+#             if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
+#                [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
+#                [[ "$version" != "$current" ]]; then
+#               echo "$file"
+#             fi
+#           done)
+#           echo "$selected_files"
     
-          # Save to file or GitHub output
-          echo "$selected_files" > filtered_files.txt
-          # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
-           echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
+#           # Save to file or GitHub output
+#           echo "$selected_files" > filtered_files.txt
+#           # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
+#            echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload added SQL files to S3
-        # if: steps.detect.outputs.files_changed == 'true'
-        run: |
-          while IFS= read -r file; do
-            echo "Uploading $file to S3..."
-            aws s3 cp "$file" "s3://sri031901/$file"
-          done < filtered_files.txt
+#       - name: Upload added SQL files to S3
+#         # if: steps.detect.outputs.files_changed == 'true'
+#         run: |
+#           while IFS= read -r file; do
+#             echo "Uploading $file to S3..."
+#             aws s3 cp "$file" "s3://sri031901/$file"
+#           done < filtered_files.txt
 
-      # - name: Upload added SQL files to S3
-      #   run: |
-      #     echo "Uploading file to S3..."
-      #     aws s3 sync sql/ "s3://$BUCKET_NAME/sql"
+#       # - name: Upload added SQL files to S3
+#       #   run: |
+#       #     echo "Uploading file to S3..."
+#       #     aws s3 sync sql/ "s3://$BUCKET_NAME/sql"
