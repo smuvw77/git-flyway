@@ -81,6 +81,7 @@ jobs:
           # else
           #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
           # fi
+          cat log.txt
           current_version=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
           echo "Extracted version1: $current_version1"
           current=$current_version1
