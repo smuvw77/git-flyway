@@ -73,7 +73,7 @@ jobs:
       - name: Get added SQL files only
         id: detect
         run: |
-          current=$current_version1
+          current=$CURRENT_VERSION
           target="1.1.29"
 
           echo "Files between $current and $target:"
