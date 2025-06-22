@@ -36,6 +36,12 @@ jobs:
             echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
           } &> log.txt
 
+      - name: Upload filtered file list
+        uses: actions/upload-artifact@v4
+        with:
+          name: filtered-sql-files
+          path: filtered_files.txt
+
       - name: Upload job log
         uses: actions/upload-artifact@v4
         with:
