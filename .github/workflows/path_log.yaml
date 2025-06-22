@@ -94,13 +94,13 @@ jobs:
           # echo "files=$selected_files" >> "$GITHUB_OUTPUT"
            echo "files=$(echo "$selected_files" | paste -sd ' ' -)" >> "$GITHUB_OUTPUT"
 
-      # - name: Upload added SQL files to S3
-      #   # if: steps.detect.outputs.files_changed == 'true'
-      #   run: |
-      #     while IFS= read -r file; do
-      #       echo "Uploading $file to S3..."
-      #       aws s3 cp "$file" "s3://sri031901/$file"
-      #     done < filtered_files.txt
+      - name: Upload added SQL files to S3
+        # if: steps.detect.outputs.files_changed == 'true'
+        run: |
+          while IFS= read -r file; do
+            echo "Uploading $file to S3..."
+            aws s3 cp "$file" "s3://sri031901/$file"
+          done < filtered_files.txt
 
       # - name: Upload added SQL files to S3
       #   run: |
