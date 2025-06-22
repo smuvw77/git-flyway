@@ -62,6 +62,12 @@ jobs:
           echo "Extracted version: $version"
           echo "===== JOB 1 LOG END ====="
 
+      - name: Download filtered file list
+        uses: actions/download-artifact@v4
+        with:
+          name: filtered-sql-files
+          path: .
+
       - name: Upload filtered SQL files to S3
         run: |
           while IFS= read -r file; do
