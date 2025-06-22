@@ -19,7 +19,7 @@ jobs:
           target="1.1.29"
 
           {
-            echo "Files between $current and $target: "
+            echo " Files between $current and $target: "
             echo "Currect version of flyway : $current"
           } &> log.txt
 
