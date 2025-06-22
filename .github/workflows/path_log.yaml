@@ -54,7 +54,7 @@ jobs:
           echo "===== JOB 1 LOG START ====="
           cat log.txt
           current_version1=$(sed -n 's/^Currect version of flyway : *//p' log.txt)
-          echo "Extracted version: $current_version"
+          echo "Extracted version: $current_version1"
           echo "CURRENT_VERSION=$current_version1" >> "$GITHUB_ENV"
           echo "===== JOB 1 LOG END ====="
       - name: Checkout repository
