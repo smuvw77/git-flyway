@@ -29,15 +29,29 @@ jobs:
       - name: Get added SQL files only
         id: detect
         run: |
-          git fetch origin ${{ github.event.before }}
-          git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | grep '^sql/.*\.sql$' > added_files.txt || true
+          # git fetch origin ${{ github.event.before }}
+          # git diff --diff-filter=A --name-only ${{ github.event.before }} ${{ github.sha }} \
+          #   | grep '^sql/.*\.sql$' > added_files.txt || true
           
-          if [[ -s added_files.txt ]]; then
-            echo "files_changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "files_changed=false" >> "$GITHUB_OUTPUT"
-          fi
+          # if [[ -s added_files.txt ]]; then
+          #   echo "files_changed=true" >> "$GITHUB_OUTPUT"
+          # else
+          #   echo "files_changed=false" >> "$GITHUB_OUTPUT"
+          # fi
+          current="1.1.22"
+          target="1.1.29"
+
+          echo "Files between $current and $target:"
+    
+          selected_files=$(find sql -type f -name "V*.sql" | while read file; do
+            version=$(basename "$file" | sed -n 's/^V\([0-9.]\+\)__.*$/\1/p')
+            # Compare versions using sort -V
+            if [[ "$(printf "%s\n" "$current" "$version" | sort -V | tail -n1)" == "$version" ]] && \
+               [[ "$(printf "%s\n" "$target" "$version" | sort -V | head -n1)" == "$version" ]] && \
+               [[ "$version" != "$current" ]]; then
+              echo "$file"
+            fi
+          done)
 
       - name: Upload added SQL files to S3
         if: steps.detect.outputs.files_changed == 'true'
